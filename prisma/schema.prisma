@@ -22,7 +22,7 @@ model User {
 
 model Gadget {
   id String @id @default(uuid())
-  name String
+  name String @unique
   status Status @default(AVAILABLE)
   decommissionedOn DateTime?
 }
