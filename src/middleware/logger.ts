@@ -1,6 +1,7 @@
 import { format } from 'date-fns';
 import { v4 as uuid } from 'uuid';
 import fs from 'fs';
+import { Request, Response, NextFunction } from 'express';
 import { promises as fsPromises } from 'fs';
 import path from 'path';
 
@@ -9,7 +10,7 @@ import path from 'path';
  * @param {string} message - The message to log.
  * @param {string} logFileName - The name of the log file.
  */
-const logEvents = async (message, logFileName) => {
+const logEvents = async (message: string, logFileName: string) => {
     const dateTime = format(new Date(), 'ddMMyyyy\tHH:mm:ss');
     const logMessage = `${dateTime}\t${uuid()}\t${message}\n`;
 
@@ -30,10 +31,10 @@ const logEvents = async (message, logFileName) => {
  * @param {Object} res - The response object.
  * @param {Function} next - The next middleware function.
  */
-const logger = (req, res, next) => {
- logEvents(`${req.method}\t${req.url}\t${req.headers.origin}`, 'requestLog.log');
- console.log(`${req.method} ${req.path}`);
- next();
+const logger = (req: Request, res: Response, next: NextFunction) => {
+    logEvents(`${req.method}\t${req.url}\t${req.headers.origin}`, 'requestLog.log');
+    console.log(`${req.method} ${req.path}`);
+    next();
 }
 
 export { logEvents, logger };

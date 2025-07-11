@@ -17,7 +17,7 @@ app.use('/gadgets', gadgetsRoutes);
 app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
 
-app.all('*', (req, res) => {
+app.all('/{*any}', (req, res) => {
     res.status(404)
     if (req.accepts('html')) {
         res.sendFile(path.join(__dirname, 'views', '404.html'))
