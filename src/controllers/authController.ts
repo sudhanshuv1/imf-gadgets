@@ -10,10 +10,11 @@ import jwt from 'jsonwebtoken';
 //@access Public
 const login = async (req: Request, res: Response) => {
 
-    const { email, password } = req.body;
     let foundUser: User | null = null, accessToken: string | null = null;
 
     try {
+        const { email, password } = req.body;
+
         if (!email || !password) {
             throw new Error("Email and Password are required!")
         }
@@ -23,12 +24,12 @@ const login = async (req: Request, res: Response) => {
         });
 
         if (!foundUser) {
-            throw new Error(`User with email ${email} not found!`);
+            throw new Error(`User with email ${email} does not exist!`);
         }
 
         const isPasswordCorrect = await bcrypt.compare(password, foundUser.password);
         if (!isPasswordCorrect) {
-            throw new Error("Error signing in: Incorrect password!");
+            throw new Error("Incorrect password!");
         }
 
         // Generate JWT token
@@ -51,25 +52,29 @@ const login = async (req: Request, res: Response) => {
     }
     catch(error) {
         if(error instanceof Error) {
-            return res.status(400).json({message: `Error: ${error.message}`});
+            return res.status(400).json({message: `Error signing in: ${error.message}`});
         }
-        return res.status(400).json({message: `Error: Unknown error occurred!`})
+        return res.status(400).json({message: `Error signing in: Unknown error occurred!`})
     }
-    
-    res.status(200).json({ message: `User with email ${foundUser.email} logged in successfully!
-                                    \nAccess Token: ${accessToken}
-                                    \nUser: ${foundUser}` });
+
+    res.status(200).json({
+        message: `User with email ${foundUser.email} logged in successfully!`,
+        "Access Token": accessToken,
+        "User": foundUser
+    });
 };
 
 //@desc refresh token
 //@route POST /auth/refresh
 //@access Public
 const refresh = async (req: Request, res: Response) => {
-    const { cookies } = req;
 
     let newAccessToken: string | null = null;
 
     try {
+
+        const { cookies } = req;
+
         if(!cookies?.refreshToken) {
             throw new Error("Unauthorized!")
         }
@@ -115,9 +120,10 @@ const refresh = async (req: Request, res: Response) => {
 //@route POST /auth/logout
 //@access Public
 const logout = async (req: Request, res: Response) => {
-    const { cookies } = req;
 
     try {
+        const { cookies } = req;
+
         if (!cookies?.refreshToken) {
             throw new Error("No content!");
         }

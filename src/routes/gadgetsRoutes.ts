@@ -8,9 +8,9 @@ router.use(verifyJWT);
 router.route('/')
     .get(getAllGadgets)
     .post(createGadget)
+    .patch(updateGadget)
 
 router.route('/:id')
-    .patch(updateGadget)
     .delete(removeGadget)
 
 router.route('/:id/self-destruct')

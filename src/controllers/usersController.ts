@@ -15,9 +15,11 @@ export interface User {
 const createUser = async (req: Request, res: Response) => {
 
     let newUser: User | null = null;
-    const { email, password } = req.body;
 
     try {
+
+        const { email, password } = req.body;
+
         if (!email || !password) {
             throw new Error("Email and Password are required!")
         }
@@ -64,9 +66,11 @@ const createUser = async (req: Request, res: Response) => {
 const updateUser = async (req: Request, res: Response) => {
     let updatedUser: User | null = null;
 
-    const { id, email, password } = req.body;
 
     try {
+
+        const { id, email, password } = req.body;
+        
         if (!id || !email || !password) {
             throw new Error("id, email and password are required!")
         }

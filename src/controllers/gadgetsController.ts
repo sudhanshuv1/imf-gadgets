@@ -16,6 +16,7 @@ export interface Gadget {
 // @access Private
 const createGadget = async (req: Request, res: Response) => {
     let newGadget: Gadget | null = null;
+
     try {
         newGadget = await Prisma.gadget.create({
             data: {
@@ -32,7 +33,7 @@ const createGadget = async (req: Request, res: Response) => {
         }
         return res.status(400).json({ message: `Unknown error occurred` });
     }
-    return res.status(201).json({ message: `A new gadget "${newGadget.name}" created successfully!`, gadget: newGadget });
+    return res.status(201).json({ message: `New gadget "${newGadget.name}" created successfully!`, gadget: newGadget });
 }
 
 //@desc Get all gadgets
@@ -40,6 +41,7 @@ const createGadget = async (req: Request, res: Response) => {
 //@access Private
 const getAllGadgets = async (req: Request, res: Response) => {
     let withSuccessProbability;
+
     try {
         const allGadgets = await Prisma.gadget.findMany();
         if(!allGadgets) {
@@ -49,10 +51,12 @@ const getAllGadgets = async (req: Request, res: Response) => {
             throw new Error("No gadgets found in the inventory!");
         }
         withSuccessProbability = allGadgets.map((gadget: Gadget) => {
-            return `${gadget.name} - ${getRandomArbitrary(0,100)}% success probability.
-                    \nid: ${gadget.id}
-                    \nStatus: ${gadget.status}
-                    \nDecommissioned On: ${gadget.decommissionedOn}`;
+            return {
+                [gadget.name]: `${getRandomArbitrary(0,100)}% success probability.`,
+                id: gadget.id,
+                Status: gadget.status,
+                "Decommissioned On": gadget.decommissionedOn
+            };
         })
     } catch (error: unknown) {
         if (error instanceof Error) {
@@ -61,20 +65,22 @@ const getAllGadgets = async (req: Request, res: Response) => {
         return res.status(400).json({ message: `Unknown error occurred` });
     }
 
-    res.status(200).json({ message: `Gadgets: ${withSuccessProbability}` })
+    res.status(200).json({ message: { Gadgets: withSuccessProbability } })
 }
 
 //@desc Update a gadget
-//@route PATCH /gadgets/:id
+//@route PATCH /gadgets
 //@access Private
 const updateGadget = async (req: Request, res: Response) => {
 
     let updatedGadget: Gadget | null = null;
 
-    const gadgetId: string = req.params.id;
+    let gadgetId: string;
 
     try {
 
+        const { id } = req.body;
+        gadgetId = id;
         const {newName, newStatus} = req.body;
 
         const existingGadget = await Prisma.gadget.findUnique({
@@ -105,7 +111,7 @@ const updateGadget = async (req: Request, res: Response) => {
         }
         return res.status(400).json({ message: `Unknown error occurred` });
     }
-    res.status(200).json({message: `Gadget with id ${gadgetId} updated successfully: ${updatedGadget}`})
+    res.status(200).json({message: `Gadget with id ${gadgetId} updated successfully.`, "Updated gadget": updatedGadget})
 }
 
 //@desc Remove a gadget from the inventory
@@ -113,8 +119,11 @@ const updateGadget = async (req: Request, res: Response) => {
 //@access Private
 const removeGadget = async (req: Request, res: Response) => {
     let removedGadget: Gadget | null = null;
-    let gadgetId: string = req.params.id;
+    let gadgetId: string;
+    
     try {
+        gadgetId = req.params.id;
+
         const existingGadget = await Prisma.gadget.findUnique({
             where: {
                 id: gadgetId,
@@ -143,7 +152,7 @@ const removeGadget = async (req: Request, res: Response) => {
         return res.status(400).json({ message: `Unknown error occurred` });
     }
 
-    res.status(200).json({message: `Gadget with id ${gadgetId} removed successfully: ${removedGadget}`})
+    res.status(200).json({message: `Gadget with id ${gadgetId} removed successfully.`, "Removed gadget": removedGadget})
 }
 
 //@desc Trigger the self-desctruct sequence for a gadget
@@ -151,13 +160,16 @@ const removeGadget = async (req: Request, res: Response) => {
 //@access Private
 const selfDestructGadget = async (req: Request, res: Response) => {
 
-    const gadgetId: string = req.params.id;
+    let gadgetId: string;
 
-    const { confirmationCode } = req.body; 
 
     let destroyedGadget: Gadget | null = null;
 
     try {
+
+        const { confirmationCode } = req.body;
+        gadgetId = req.params.id;
+
         const existingGadget = await Prisma.gadget.findUnique({
             where: {
                 id: gadgetId,
@@ -188,8 +200,8 @@ const selfDestructGadget = async (req: Request, res: Response) => {
         }
         return res.status(400).json({ message: `Unknown error occurred` });
     }
-    
-    res.status(200).json({message: `Gadget with id ${gadgetId} self-destructed successfully: ${destroyedGadget}`})
+
+    res.status(200).json({message: `Gadget with id ${gadgetId} self-destructed successfully.`, "Self-destructed gadget": destroyedGadget})
 }
 
 export {
