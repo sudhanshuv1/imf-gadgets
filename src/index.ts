@@ -1,12 +1,15 @@
 import express from 'express';
+import path from 'path';
+import dotenv from 'dotenv';
+
 import gadgetsRoutes from './routes/gadgetsRoutes';
 import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
-import path from 'path';
+import { setupGoogleCredentials } from './bootstrap-credentials';
 import { logger } from './middleware/logger';
-import dotenv from 'dotenv';
 
 dotenv.config();
+setupGoogleCredentials();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
