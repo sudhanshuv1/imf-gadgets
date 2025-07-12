@@ -1,7 +1,8 @@
 import { PrismaClient } from '../../generated/prisma'; 
-import { getRandomArbitrary } from '../utils';
+import { getRandomArbitrary, generateCodename } from '../utils';
 import { Request, Response } from 'express';
 import { Status } from '../../generated/prisma';
+import 'dotenv/config';
 const Prisma = new PrismaClient();
 
 export interface Gadget {
@@ -18,9 +19,19 @@ const createGadget = async (req: Request, res: Response) => {
     let newGadget: Gadget | null = null;
 
     try {
+
+        const allGadgets: Gadget[] = await Prisma.gadget.findMany();
+        const gadgetNames: string[] = allGadgets.map((gadget: Gadget) => gadget.name);
+
+        const codename: string | undefined = await generateCodename(gadgetNames);
+
+        if (!codename) {
+            throw new Error("Codename could not be generated");
+        }
+
         newGadget = await Prisma.gadget.create({
             data: {
-                name: "The Nightangle",
+                name: codename,
                 status: Status.AVAILABLE,
             },
         });
@@ -43,7 +54,7 @@ const getAllGadgets = async (req: Request, res: Response) => {
     let withSuccessProbability;
 
     try {
-        const allGadgets = await Prisma.gadget.findMany();
+        const allGadgets: Gadget[] = await Prisma.gadget.findMany();
         if(!allGadgets) {
             throw new Error("Gadgets could not be retrieved!");
         }
