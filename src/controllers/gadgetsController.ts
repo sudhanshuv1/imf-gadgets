@@ -51,15 +51,22 @@ const createGadget = async (req: Request, res: Response) => {
 //@route GET /gadgets
 //@access Private
 const getAllGadgets = async (req: Request, res: Response) => {
+
+    const { status: gadgetStatus }: { status?: Status } = req.query;
+
     let withSuccessProbability;
 
     try {
-        const allGadgets: Gadget[] = await Prisma.gadget.findMany();
-        if(!allGadgets) {
+        const allGadgets: Gadget[] = await Prisma.gadget.findMany({
+            where: {
+                status: gadgetStatus ? gadgetStatus : { not: undefined },
+            }
+        });
+        if (!allGadgets) {
             throw new Error("Gadgets could not be retrieved!");
         }
-        if(allGadgets.length === 0) {
-            throw new Error("No gadgets found in the inventory!");
+        if (allGadgets.length === 0) {
+            throw new Error(`No gadgets ${gadgetStatus ? `with status ${gadgetStatus}` : ''} found in the inventory!`);
         }
         withSuccessProbability = allGadgets.map((gadget: Gadget) => {
             return {
@@ -93,6 +100,10 @@ const updateGadget = async (req: Request, res: Response) => {
         const { id } = req.body;
         gadgetId = id;
         const {newName, newStatus} = req.body;
+
+        if (!gadgetId) {
+            throw new Error("Gadget ID is required for updating a gadget!");
+        }
 
         const existingGadget = await Prisma.gadget.findUnique({
             where: {
